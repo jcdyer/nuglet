@@ -1,0 +1,15 @@
+#!/usr/bin/env python3
+
+"""Import all the photos from flickr to the database"""
+
+import logging
+
+def main():
+    """Call the import routine"""
+    from nuglet import flickr
+
+    logging.basicConfig(level='INFO')
+    flickr.main()
+
+if __name__ == '__main__':
+    main()

@@ -1,0 +1,11 @@
+#!/usr/bin/env python3
+
+"""Run the development server"""
+
+import logging
+
+from nuglet.site import app
+
+if __name__ == '__main__':
+    logging.basicConfig()
+    app.run()
