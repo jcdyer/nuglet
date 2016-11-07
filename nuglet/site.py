@@ -1,3 +1,6 @@
+# pylint: disable=missing-docstring
+
+from collections import OrderedDict
 from contextlib import closing
 import itertools
 
@@ -6,23 +9,27 @@ import flask
 from nuglet.models import Photo
 from nuglet.db import connect
 
-app = flask.Flask('nuglet')
-
-db = connect()
-
 PAGE_SIZE = 100
 
+db = connect()  # pylint: disable=invalid-name
+app = flask.Flask('nuglet')  # pylint: disable=invalid-name
 
-def render_image(im):
-    return '''
-        <li>
-            <h3>{title}</h3>
-            <img alt='{title}' src='{url}' width='600'>
-        </li>
-        '''.format(title=im['title'], url=im['url'])
 
 def by_page(results, page):
     return itertools.islice(results, PAGE_SIZE * page, PAGE_SIZE * (page + 1))
+
+def list_context(results):
+    page = int(flask.request.args.get('page', 1))
+    paginators = OrderedDict()
+    rowcount = len(results)
+    if page != 1:
+        paginators['prev'] = '?page={}'.format(page - 1)
+    if rowcount > page * PAGE_SIZE:
+        paginators['next'] = '?page={}'.format(page + 1)
+    return {
+        'paginators': paginators,
+        'results': by_page((Photo.from_dbrow(result) for result in results), page - 1),
+    }
 
 
 @app.route('/')
@@ -40,22 +47,21 @@ def main_page():
 
 @app.route('/favorites/<count>')
 def favorites(count):
-    page = int(flask.request.args.get('page', 1))
-    query = 'SELECT * FROM photo WHERE favorites == ?'
+    photoquery = '''
+        SELECT * FROM photo
+            WHERE favorites == ?
+            ORDER BY date
+    '''
+    memberquery = 'SELECT * FROM member'
     with closing(db.cursor()) as cursor:
-        cursor.execute(query, count)
-        rows = cursor.fetchall()
-        rowcount = len(rows)
-        paginators = []
-        if page != 1:
-            paginators.append('<a href="?page={}">Prev</a>'.format(page - 1))
-        if rowcount > page * 100:
-            paginators.append('<a href="?page={}">Next</a>'.format(page + 1))
-        return '''<h1>Favorites ({} votes)</h1><ol>{}</ol><p>{}</p>'''.format(
-            count,
-            '\n'.join(render_image(row) for row in by_page(rows, page - 1)),
-            ' | '.join(paginators),
-        )
+        cursor.execute(photoquery, count)
+        photos = cursor.fetchall()
+        cursor.execute(memberquery)
+        members = {m['nsid']: m['username'] for m in cursor.fetchall()}
+    context = list_context(photos)
+    context['title'] = "Favorites ({} votes)".format(count)
+    context['members'] = members
+    return flask.render_template('list_page.html.j2', **context)
 
 
 if __name__ == '__main__':

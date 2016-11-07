@@ -29,6 +29,18 @@ class Photo(object):
             favorites=len(favs_for_photo['photo']['person']),
         )
 
+    @classmethod
+    def from_dbrow(cls, dbrow):
+        return cls(
+            nsid=dbrow['nsid'],
+            owner=dbrow['owner'],
+            title=dbrow['title'],
+            format_=dbrow['format'],
+            date=dbrow['date'],
+            url=dbrow['url'],
+            favorites=dbrow['favorites'],
+        )
+
     def __repr__(self):
         return '{}'.format(self.to_dict())
 

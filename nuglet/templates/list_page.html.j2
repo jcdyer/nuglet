@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<title>{{title}}</title>
+<h1>{{title}}</h1>
+
+<nav>
+{% set pipe = joiner("|") %}
+{% for paginator in paginators %}
+    {{ pipe() }} <a href="{{paginators[paginator]}}">{{paginator}}</a>
+{% endfor %}
+</nav>
+<ol>
+{% for result in results %}
+    <li>
+        <div>
+            <h2>{{result.title}}</h2>
+	    <div>{{members[result.owner]}} | {{result.date}}</div>
+            <img alt='{{result.title}}' src='{{result.url}}' width='600'>
+        </div>
+    </li>
+{% endfor %}
+</ol>
+
+<nav>
+{% for paginator in paginators %}
+  <a href="{{paginators[paginator]}}">{{paginator}}</a> |
+{% endfor %}
+</nav>

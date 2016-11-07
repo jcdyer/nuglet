@@ -216,6 +216,25 @@ def iter_existing_photos(cursor):
     for photo in cursor:
         yield photo['nsid']
 
+def get_members():
+    session = requests.Session()
+    access_token = get_access_token(session)
+    req = api_request(
+        'flickr.people.getGroups',
+        access_token,
+        api_key=FLICKR_CREDS['key'],
+        user_id=access_token['user_nsid'][0],
+    )
+    groups_response = session.send(req).json()
+    group_id = get_group_id_by_name(groups_response, "Li'l Nuglet")
+    req = api_request(
+        'flickr.groups.members.getList',
+        access_token,
+        api_key=FLICKR_CREDS['key'],
+        group_id=group_id,
+    )
+    return session.send(req).json()
+
 def main():
     session = requests.Session()
     access_token = get_access_token(session)
