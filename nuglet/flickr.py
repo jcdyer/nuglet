@@ -141,12 +141,10 @@ def authenticate(session):
     return at_response.text
 
 
-
 def get_group_id_by_name(groups, name):
     for group in groups['groups']['group']:
         if group['name'] == name:
             return group['nsid']
-
 
 
 def iter_group_photos(session, access_token, group_id):
@@ -205,7 +203,7 @@ def create_db(cursor):
     """)
 
 
-def store_in_db(cursor, existing_photos, photos):
+def store_in_db(cursor, photos):
 
     cursor.executemany(
         "INSERT INTO photo VALUES (?, ?, ?, ?, ?, ?, ?)",
@@ -226,11 +224,19 @@ def main():
         'flickr.people.getGroups',
         access_token,
         api_key=FLICKR_CREDS['key'],
-        user_id=access_token['user_nsid'][0]
+        user_id=access_token['user_nsid'][0],
     )
-    group_response = session.send(req).json()
-    group_id = get_group_id_by_name(group_response, u"Li'l Nuglet")
-    progress = progressbar.ProgressBar(max_value=1300)
+    groups_response = session.send(req).json()
+    group_id = get_group_id_by_name(groups_response, "Li'l Nuglet")
+    req = api_request(
+        'flickr.groups.getInfo',
+        access_token,
+        api_key=FLICKR_CREDS['key'],
+        group_id=group_id,
+    )
+    group_info_response = session.send(req).json()
+    total = int(group_info_response['group']['pool_count']['_content'])
+    progress = progressbar.ProgressBar(max_value=total)
     photos = progress(iter_group_photos(session, access_token, group_id))
 
     newdb = dbexists()
@@ -247,7 +253,7 @@ def main():
 
     with contextlib.closing(db.cursor()) as cursor:
         for photo in iter_by_favorites(photos):
-            store_in_db(cursor, existing_photos, [photo])
+            store_in_db(cursor, [photo])
         db.commit()
 
 

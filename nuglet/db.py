@@ -9,5 +9,7 @@ def dbexists():
 
 def connect():
     '''Returns a connection to the DB'''
-    return sqlite3.connect(DBFILE)
+    conn = sqlite3.connect(DBFILE)
+    conn.row_factory = sqlite3.Row
+    return conn
 
