@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+
+<head>
+<title>Favorite photos</title>
+</head>
+
+<h1>Favorite photos</h1>
+
+<h2><a href="/favorites">Any votes</a></h2>
+{% for tier in tiers %}
+<h2><a href="/favorites/{{ tier.favorites }}">{{ tier.favorites }} votes ({{ tier.count }} images)</a></h2>
+{% endfor %}

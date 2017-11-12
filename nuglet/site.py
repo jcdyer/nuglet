@@ -3,19 +3,23 @@
 from collections import OrderedDict
 from contextlib import closing
 import itertools
+from typing import Iterable, TypeVar
 
 import flask
 
 from nuglet.models import Photo
 from nuglet.db import connect
 
-PAGE_SIZE = 100
+PAGE_SIZE: int = 100
+
+T = TypeVar('T')
+
 
 db = connect()  # pylint: disable=invalid-name
 app = flask.Flask('nuglet')  # pylint: disable=invalid-name
 
 
-def by_page(results, page):
+def by_page(results: Iterable[T], page: int) -> Iterable[T]:
     return itertools.islice(results, PAGE_SIZE * page, PAGE_SIZE * (page + 1))
 
 def list_context(results):
@@ -29,19 +33,13 @@ def list_context(results):
     return {
         'paginators': paginators,
         'results': by_page((Photo.from_dbrow(result) for result in results), page - 1),
+        'page': page,
+        'page_size': PAGE_SIZE,
     }
 
 
 @app.route('/')
-def main_page():
-    def format_single_row(row):
-        row_text = '{favorites} votes ({count} images)'.format(**row)
-        return '<h3><a href="/favorites/{favorites}">{}</a></h3>'.format(row_text, **row)
-
-    def format_all_row():
-        row_text = 'Any votes'
-        return '<h3><a href="/favorites">{}</a></h3>'.format(row_text)
-
+def main_page() -> flask.Response:
     query = '''
         SELECT favorites, count(*) AS count 
         FROM photo 
@@ -52,13 +50,9 @@ def main_page():
 
     with closing(db.cursor()) as cursor:
         cursor.execute(query)
-
-        all_row = format_all_row()
-        rows = (format_single_row(row) for row in cursor.fetchall())
-        return '''<h1>Favorite photos</h1><ul>{}</ul>'''.format(
-            '\n'.join(itertools.chain([format_all_row()], rows)
-            )
-        )
+        tiers = cursor.fetchall()
+    context = {'tiers': tiers}
+    return flask.render_template('main_page.html.j2', **context)
 
 
 @app.route('/favorites')
@@ -77,7 +71,7 @@ def all_favorites():
         cursor.execute(memberquery)
         members = {m['nsid']: m['username'] for m in cursor.fetchall()}
     context = list_context(photos)
-    context['title'] = "Favorites (All votes)"
+    context['title'] = "Favorites (All photos with votes)"
     context['members'] = members
     return flask.render_template('list_page.html.j2', **context)
 

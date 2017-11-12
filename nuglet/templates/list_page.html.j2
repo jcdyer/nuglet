@@ -8,7 +8,7 @@
     {{ pipe() }} <a href="{{paginators[paginator]}}">{{paginator}}</a>
 {% endfor %}
 </nav>
-<ol>
+<ol{% if page > 1 %} start='{{ 1 + (page - 1) * page_size }}'{% endif %}>
 {% for result in results %}
     <li>
         <div>
@@ -21,7 +21,8 @@
 </ol>
 
 <nav>
+{% set pipe = joiner("|") %}
 {% for paginator in paginators %}
-  <a href="{{paginators[paginator]}}">{{paginator}}</a> |
+    {{ pipe() }} <a href="{{paginators[paginator]}}">{{paginator}}</a>
 {% endfor %}
 </nav>
