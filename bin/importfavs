@@ -9,6 +9,7 @@ def main():
     from nuglet import flickr
 
     logging.basicConfig(level='INFO')
+    flickr.main_members()
     flickr.main()
 
 if __name__ == '__main__':

@@ -8,4 +8,4 @@ from nuglet.site import app
 
 if __name__ == '__main__':
     logging.basicConfig()
-    app.run()
+    app.run(host="::", port=8000)

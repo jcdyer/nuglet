@@ -34,27 +34,65 @@ def list_context(results):
 
 @app.route('/')
 def main_page():
-    query = 'SELECT favorites, count(*) as count FROM photo GROUP BY favorites'
+    def format_single_row(row):
+        row_text = '{favorites} votes ({count} images)'.format(**row)
+        return '<h3><a href="/favorites/{favorites}">{}</a></h3>'.format(row_text, **row)
+
+    def format_all_row():
+        row_text = 'Any votes'
+        return '<h3><a href="/favorites">{}</a></h3>'.format(row_text)
+
+    query = '''
+        SELECT favorites, count(*) AS count 
+        FROM photo 
+        WHERE date >= "2016-11-01" 
+        AND date < "2017-11-01" 
+        GROUP BY favorites
+    '''
+
     with closing(db.cursor()) as cursor:
         cursor.execute(query)
 
+        all_row = format_all_row()
+        rows = (format_single_row(row) for row in cursor.fetchall())
         return '''<h1>Favorite photos</h1><ul>{}</ul>'''.format(
-            '\n'.join(
-                '<h3><a href="/favorites/{favorites}">{favorites} votes ({count} images)</a></h3>'.format(**x)
-                for x in cursor.fetchall()
+            '\n'.join(itertools.chain([format_all_row()], rows)
             )
         )
+
+
+@app.route('/favorites')
+def all_favorites():
+    photoquery = '''
+        SELECT * FROM photo
+            WHERE favorites > 0
+            AND date >= "2016-11-01"
+            AND date < "2017-11-01" 
+            ORDER BY date
+    '''
+    memberquery = 'SELECT * FROM member'
+    with closing(db.cursor()) as cursor:
+        cursor.execute(photoquery)
+        photos = cursor.fetchall()
+        cursor.execute(memberquery)
+        members = {m['nsid']: m['username'] for m in cursor.fetchall()}
+    context = list_context(photos)
+    context['title'] = "Favorites (All votes)"
+    context['members'] = members
+    return flask.render_template('list_page.html.j2', **context)
 
 @app.route('/favorites/<count>')
 def favorites(count):
     photoquery = '''
         SELECT * FROM photo
             WHERE favorites == ?
+            AND date >= "2016-11-01"
+            AND date < "2017-11-01" 
             ORDER BY date
     '''
     memberquery = 'SELECT * FROM member'
     with closing(db.cursor()) as cursor:
-        cursor.execute(photoquery, count)
+        cursor.execute(photoquery, (count,))
         photos = cursor.fetchall()
         cursor.execute(memberquery)
         members = {m['nsid']: m['username'] for m in cursor.fetchall()}

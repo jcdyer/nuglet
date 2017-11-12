@@ -1,5 +1,20 @@
 """Business objects for nuglet photos."""
 
+class Member(object):
+    """Member object"""
+    def __init__(self, nsid, username):
+        self.nsid = nsid
+        self.username = username
+
+    @classmethod
+    def from_api(cls, member_info):
+        """Create a member object from a row in the database"""
+        return cls(
+            nsid=member_info['nsid'],
+            username=member_info['username'],
+        )
+
+
 class Photo(object):
     """Photo object"""
     def __init__(self, nsid, owner, title, format_, date, url, favorites):  # pylint: disable=too-many-arguments
@@ -31,6 +46,7 @@ class Photo(object):
 
     @classmethod
     def from_dbrow(cls, dbrow):
+        """Create a photo object from a row in the database"""
         return cls(
             nsid=dbrow['nsid'],
             owner=dbrow['owner'],
