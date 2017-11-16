@@ -1,6 +1,19 @@
 <!DOCTYPE html>
-<title>{{title}}</title>
+<html lang='en'>
+<head>
+  <title>{{title}}</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <script src="https://unpkg.com/vue"></script>
+  <link rel="stylesheet"
+        href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css"
+        integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb"
+        crossorigin="anonymous">
+</head>
+
+<body data-votes="{{votes}}" data-page="{{page}}" data-page-count="{{page_count}}">
 <h1>{{title}}</h1>
+<p>(page {{ page }} of {{ page_count }})</p>
 
 <nav>
 {% set pipe = joiner("|") %}
@@ -8,17 +21,18 @@
     {{ pipe() }} <a href="{{paginators[paginator]}}">{{paginator}}</a>
 {% endfor %}
 </nav>
+
+<div id='app'>
 <ol{% if page > 1 %} start='{{ 1 + (page - 1) * page_size }}'{% endif %}>
-{% for result in results %}
-    <li>
-        <div>
-            <h2>{{result.title}}</h2>
-	    <div>{{members[result.owner]}} | {{result.date}} | Favs: {{result.favorites}}</div>
-            <img alt='{{result.title}}' src='{{result.url}}' width='600'>
-        </div>
+    <li v-for='result in results'>
+      <photo
+         v-bind:result='result'
+         v-bind:members='members'
+         v-bind:key='result.url'>
+      </photo>
     </li>
-{% endfor %}
 </ol>
+</div>
 
 <nav>
 {% set pipe = joiner("|") %}
@@ -26,3 +40,8 @@
     {{ pipe() }} <a href="{{paginators[paginator]}}">{{paginator}}</a>
 {% endfor %}
 </nav>
+
+<script src='/static/list_page.js'>
+</script>
+</body>
+</html>
