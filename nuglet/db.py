@@ -1,7 +1,7 @@
 import os
 import sqlite3
 
-DBFILE = 'nuglet2017.db'
+DBFILE = 'nuglet2018.db'
 
 def dbexists() -> bool:
     '''Returns True if the database exists'''

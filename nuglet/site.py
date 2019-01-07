@@ -41,10 +41,10 @@ def list_context(results):
 @app.route('/')
 def main_page() -> flask.Response:
     query = '''
-        SELECT favorites, count(*) AS count 
-        FROM photo 
-        WHERE date >= "2016-11-01" 
-        AND date < "2017-11-01" 
+        SELECT favorites, count(*) AS count
+        FROM photo
+        WHERE date >= "2017-11-01"
+        AND date < "2018-11-01"
         GROUP BY favorites
     '''
 
@@ -60,8 +60,8 @@ def all_favorites():
     photoquery = '''
         SELECT * FROM photo
             WHERE favorites > 0
-            AND date >= "2016-11-01"
-            AND date < "2017-11-01" 
+            AND date >= "2017-11-01"
+            AND date < "2018-11-01"
             ORDER BY date
     '''
     memberquery = 'SELECT * FROM member'
@@ -80,8 +80,8 @@ def favorites(count):
     photoquery = '''
         SELECT * FROM photo
             WHERE favorites == ?
-            AND date >= "2016-11-01"
-            AND date < "2017-11-01" 
+            AND date >= "2017-11-01"
+            AND date < "2018-11-01"
             ORDER BY date
     '''
     memberquery = 'SELECT * FROM member'

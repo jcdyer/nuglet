@@ -177,6 +177,10 @@ def iter_group_photos(session, access_token, group_id):
         page_count = photos_in_group['photos']['pages']
 
         for photo in photos_in_group['photos']['photo']:
+
+            if photo['datetaken'] < '2017-11-01' or photo['datetaken'] > '2018-11-01':
+                yield None  # This keeps the progress bar accurate
+                continue
             req = api_request(
                 'flickr.photos.getFavorites',
                 access_token,
@@ -186,7 +190,7 @@ def iter_group_photos(session, access_token, group_id):
 
             try:
                 favs_for_photo = session.send(req).json()
-            except: 
+            except:
                 logger.warning("No response for {}".format(req.url))
                 favs_for_photo = {'photo': {'person': ErrorCollection([])}}
             yield Photo.from_api(photo, favs_for_photo)
@@ -278,6 +282,11 @@ def main_members():
     member_response = fetch_member_response(session, access_token, group_id)
     members = iter_members(member_response)
     db = connect()
+    if dbexists():
+        existing_photos = set()
+        with contextlib.closing(db.cursor()) as cursor:
+            create_db(cursor)
+            db.commit()
     with contextlib.closing(db.cursor()) as cursor:
         store_members_in_db(cursor, members)
         db.commit()
@@ -306,9 +315,11 @@ def main():
     progress = progressbar.ProgressBar(max_value=total)
     photos = progress(iter_group_photos(session, access_token, group_id))
 
-    newdb = dbexists()
+    newdb = not dbexists()
     db = connect()
+    print(newdb)
 
+    # is this backwards?
     if newdb:
         existing_photos = set()
         with contextlib.closing(db.cursor()) as cursor:
@@ -319,7 +330,7 @@ def main():
             existing_photos = set(iter_existing_photos(cursor))
 
     with contextlib.closing(db.cursor()) as cursor:
-        for photo in iter_by_favorites(photos):
+        for photo in iter_by_favorites(photo for photo in photos if photo):
             store_in_db(cursor, [photo])
         db.commit()
 
