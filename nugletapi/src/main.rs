@@ -4,17 +4,17 @@ use rusqlite::Connection;
 use serde_derive::Serialize;
 use serde_json;
 
-
 mod uri_serde {
     use http::Uri;
     use serde::Serializer;
 
     pub(super) fn serialize_uri<S>(uri: &Uri, ser: S) -> Result<S::Ok, S::Error>
-    where S: Serializer {
+    where
+        S: Serializer,
+    {
         ser.serialize_str(&format!("{}", uri))
     }
 }
-
 
 #[derive(Serialize)]
 struct FlickrImage {
@@ -46,18 +46,14 @@ fn images(req: &HttpRequest) -> impl Responder {
     Json(images.unwrap())
 }
 
-
 fn main() {
-    let im = FlickrImage::new("12345".into(), "http://harkablog.com?this=that&hi=no".parse().unwrap(), 0);
-    println!("SERIALIZED {}", serde_json::to_string(&im).unwrap());
     server::new(|| {
         App::new()
             .resource("/", |r| r.f(greet))
             .resource("/im", |r| r.f(images))
             .resource("/im/{votes}", |r| r.f(images))
             .resource("/{name}", |r| r.f(greet))
-    })
-    .bind("127.0.0.1:8000")
-    .expect("Can not bind to port 8000")
-    .run();
+    }).bind("127.0.0.1:8000")
+        .expect("Can not bind to port 8000")
+        .run();
 }
