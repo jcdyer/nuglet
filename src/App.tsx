@@ -14,12 +14,11 @@ interface ImageTileProps {
 
 function ImageTile(props: ImageTileProps) {
   return (
-    <li className="image-tile" onClick={() => props.onClick(props.image)}>
+    <li className={"image-tile " + props.selected ? "selected" : ""} onClick={() => props.onClick(props.image)}>
       <img
-        className={props.selected ? "selected" : ""}
         src={props.image.url.href}
       />
-      <p>{props.selected ? "selected" : "not selected"}</p>
+      <p>{props.image.caption}</p>
     </li>
   );
 }

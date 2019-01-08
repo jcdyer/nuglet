@@ -30,3 +30,14 @@
     transform: rotate(360deg);
   }
 }
+
+
+ul.image-list {
+  list-style-type: none;
+}
+.selected {
+  border-color: green;
+  border-width: 3px;
+  border-style: solid;
+  padding: 3px;
+}
