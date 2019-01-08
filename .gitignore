@@ -2,6 +2,7 @@
 node_modules/
 dist/
 data/
+target/
 npm-debug.log
 yarn-error.log
 .mypy_cache
