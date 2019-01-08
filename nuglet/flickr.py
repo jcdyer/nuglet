@@ -25,9 +25,9 @@ logger = logging.getLogger(__name__)
 
 
 config = configparser.ConfigParser()
-config.read('apikey.txt')
+config.read('data/apikey.txt')
 
-DBFILE = 'nuglet{}.db'.format(datetime.now().year)
+DBFILE = 'data/nuglet{}.db'.format(datetime.now().year)
 FLICKR_CREDS = dict(config['flickr'])
 GROUP_NAME = 'Nuglet and Chitlin'
 
