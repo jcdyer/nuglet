@@ -1,4 +1,5 @@
 use actix_web::{server, App, HttpRequest, Json, Responder};
+use actix_web::middleware::cors::Cors;
 use http::Uri;
 use rusqlite::Connection;
 use serde_derive::Serialize;
@@ -22,11 +23,12 @@ struct FlickrImage {
     #[serde(serialize_with = "uri_serde::serialize_uri")]
     uri: Uri,
     votes: u32,
+    caption: String,
 }
 
 impl FlickrImage {
-    fn new(nsid: String, uri: Uri, votes: u32) -> FlickrImage {
-        FlickrImage { nsid, uri, votes }
+    fn new(nsid: String, uri: Uri, votes: u32, caption: String) -> FlickrImage {
+        FlickrImage { nsid, uri, votes, caption }
     }
 }
 
@@ -43,12 +45,15 @@ fn images(req: &HttpRequest) -> impl Responder {
         None => db::get_images(&conn),
         Some(n) => db::get_images_by_vote(&conn, n.parse().unwrap()),
     };
+    "Access-Control-Allow-Origin: *";
     Json(images.unwrap())
 }
+
 
 fn main() {
     server::new(|| {
         App::new()
+            .middleware(Cors::build().allow_origin("All").finish())
             .resource("/", |r| r.f(greet))
             .resource("/im", |r| r.f(images))
             .resource("/im/{votes}", |r| r.f(images))
