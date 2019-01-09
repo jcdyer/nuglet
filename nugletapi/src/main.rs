@@ -53,7 +53,7 @@ fn images(req: &HttpRequest) -> impl Responder {
 fn main() {
     server::new(|| {
         App::new()
-            .middleware(Cors::build().allow_origin("All").finish())
+            .middleware(Cors::build().finish())
             .resource("/", |r| r.f(greet))
             .resource("/im", |r| r.f(images))
             .resource("/im/{votes}", |r| r.f(images))
