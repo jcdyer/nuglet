@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import logo from './logo.svg';
+import {toPhoto, Photo} from './photo';
 import './App.css';
 
 class Image {
@@ -7,16 +8,16 @@ class Image {
 }
 
 interface ImageTileProps {
-  image: Image,
+  image: Photo,
   selected: boolean,
-  onClick: (img: Image) => void,
+  onClick: (img: Photo) => void,
 }
 
 function ImageTile(props: ImageTileProps) {
   return (
     <li className={"image-tile " + props.selected ? "selected" : ""} onClick={() => props.onClick(props.image)}>
       <img
-        src={props.image.url.href}
+        src={props.image.uri}
       />
       <p>{props.image.caption}</p>
     </li>
@@ -24,7 +25,8 @@ function ImageTile(props: ImageTileProps) {
 }
 
 interface ImageListState {
-  selected: Array<Image>,
+  selected: Array<Photo>,
+  images: Array<Photo>,
 }
 
 class ImageList extends Component<{}, ImageListState> {
@@ -32,38 +34,37 @@ class ImageList extends Component<{}, ImageListState> {
     super(props);
     this.state = {
       selected: new Array(),
+      images: new Array(),
     };
   }
 
   render() {
-    const images = [
-      new Image(
-        new URL('https://farm5.staticflickr.com/4842/31714049267_3574dd284e_z_d.jpg'),
-        "Eat, play, read, sleep. Our lives in a nutshell",
-        0,
-      ),
-      new Image(
-        new URL('https://farm5.staticflickr.com/4869/45858024464_74e86a1904_z_d.jpg'),
-        "Ready to go",
-        1,
-      )
-    ];
     return (
       <ul className="image-list">
-      {images.map((img, idx) =>
-        <ImageTile key={img.url.href} image={img} selected={this.state.selected.some((x) => x.url.href === img.url.href)} onClick={() => this.handleClick(img)}/>
+      {this.state.images.map((img, idx) =>
+        <ImageTile key={img.uri} image={img} selected={this.state.selected.some((x) => x.uri === img.uri)} onClick={() => this.handleClick(img)}/>
       )}
       </ul>
     )
   }
 
-  handleClick(image: Image) {
+  componentDidMount() {
+    fetch("http://localhost:8000/im")
+      .then((resp: Response) => resp.text())
+      .then((text) => {
+        const images = toPhoto(text);
+        console.log("fetcht", images);
+        this.setState({images})
+      })
+  }
+
+  handleClick(image: Photo) {
     console.log("handling click of ", image);
     const selected = this.state.selected.slice();
     console.log("PRESELECTED", selected)
-    if (selected.some((el) => el.url.href === image.url.href)) {
+    if (selected.some((el) => el.uri === image.uri)) {
       console.log("included");
-      this.setState({selected: selected.filter((x) => x.url.href != image.url.href)});
+      this.setState({selected: selected.filter((x) => x.uri != image.uri)});
     } else {
       console.log("not included");
       this.setState({selected: selected.concat(image)});
